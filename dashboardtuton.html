@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jadwal Kegiatan Tutorial Online</title>
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: The application is designed as a single-page dashboard. It starts with a high-level summary (key stats like next deadline) for immediate insights. This is followed by a Gantt chart timeline for a visual overview of the entire semester's workload, helping users spot busy periods. Below the timeline is a detailed, filterable list of all tasks and discussions. This structure was chosen to cater to different user needs: quick status checks (summary), long-term planning (timeline), and detailed daily management (task list), providing a comprehensive and user-friendly way to organize the schedule. -->
+    <!-- Visualization & Content Choices: 1. Summary Cards: Report Info -> Key deadlines/active items. Goal -> Inform. Viz -> HTML/CSS cards. Interaction -> None. Justification -> Provides at-a-glance critical information. 2. Timeline: Report Info -> All activity durations and deadlines. Goal -> Show change/Organize. Viz -> Gantt-style Horizontal Bar Chart. Interaction -> Hover tooltips for details. Justification -> Visually represents workload over time, making it easy to see overlaps and crunch times. Library -> Chart.js (Canvas). 3. Task List: Report Info -> All individual activities. Goal -> Organize/Compare. Viz -> HTML/CSS cards. Interaction -> Filter buttons (All, Tugas, Diskusi) to dynamically show/hide items. Justification -> Allows users to focus on specific types of activities, which is key for organization. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+        background-color: #fdfbf7;
+        color: #4a4a4a;
+      }
+      .chart-container {
+        position: relative;
+        width: 100%;
+        max-width: 900px;
+        margin-left: auto;
+        margin-right: auto;
+        height: 400px;
+        max-height: 50vh;
+      }
+      .btn-filter.active {
+        background-color: #a67b5b;
+        color: #ffffff;
+      }
+      .past-due {
+        background-color: #f8f9fa;
+        opacity: 0.7;
+      }
+    </style>
+  </head>
+  <body class="antialiased">
+    <div class="container mx-auto p-4 sm:p-6 lg:p-8 max-w-6xl">
+      <header class="text-center mb-10">
+        <h1
+          class="text-3xl md:text-4xl font-bold text-[#3D352A] tracking-tight"
+        >
+          <span class="inline-block bg-[#F3F0EB] px-3 py-1 rounded-lg">
+            Dasbor
+            <span class="text-[#6B5E51]">Tutorial Online</span> Universitas
+            Terbuka
+          </span>
+        </h1>
+        <p
+          class="mt-3 text-lg text-[#6B5E51] max-w-2xl mx-auto leading-relaxed"
+        >
+          Visualisasikan
+          <span class="font-semibold text-[#3D352A]">jadwal</span>, lacak
+          <span class="font-semibold text-[#3D352A]">progres</span>, dan jangan
+          pernah lewatkan <span class="italic">tenggat waktu</span>.
+        </p>
+      </header>
+
+      <section id="summary" class="mb-10 space-y-6">
+        <div
+          class="bg-white p-6 rounded-xl shadow-sm border border-gray-200 text-center"
+        >
+          <h3 class="text-sm font-semibold text-gray-500 uppercase">
+            Tutorial Online Dimulai 6 Oktober 2025
+          </h3>
+          <div
+            id="countdown-timer"
+            class="flex justify-center items-baseline space-x-2 sm:space-x-4 mt-3 text-2xl md:text-3xl font-bold text-[#A67B5B]"
+          >
+            <div>
+              <span id="days">00</span>
+              <div class="text-xs font-normal text-gray-500">Hari</div>
+            </div>
+            <span class="text-xl">:</span>
+            <div>
+              <span id="hours">00</span>
+              <div class="text-xs font-normal text-gray-500">Jam</div>
+            </div>
+            <span class="text-xl">:</span>
+            <div>
+              <span id="minutes">00</span>
+              <div class="text-xs font-normal text-gray-500">Menit</div>
+            </div>
+            <span class="text-xl">:</span>
+            <div>
+              <span id="seconds">00</span>
+              <div class="text-xs font-normal text-gray-500">Detik</div>
+            </div>
+          </div>
+          <div
+            id="countdown-over"
+            class="hidden text-xl font-bold text-green-600 mt-3"
+          >
+            Tutorial Online telah dimulai!
+          </div>
+        </div>
+
+        <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+          <h3 class="text-sm font-semibold text-gray-500 uppercase text-center">
+            Progres Semester
+          </h3>
+          <div class="w-full bg-gray-200 rounded-full h-2.5 mt-4">
+            <div
+              id="progress-bar"
+              class="bg-[#A67B5B] h-2.5 rounded-full"
+              style="width: 0%"
+            ></div>
+          </div>
+          <p id="progress-text" class="text-sm text-gray-500 mt-2 text-center">
+            0% Selesai
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3
+              class="text-center text-sm font-semibold text-gray-500 uppercase"
+            >
+              Diskusi Aktif
+            </h3>
+            <div id="active-discussions-list" class="space-y-4 mt-4">
+              <!-- Active discussions will be injected here -->
+            </div>
+          </div>
+          <div class="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
+            <h3
+              class="text-center text-sm font-semibold text-gray-500 uppercase"
+            >
+              Tugas Aktif
+            </h3>
+            <div id="active-tasks-list" class="space-y-4 mt-4">
+              <!-- Active tasks will be injected here -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="timeline"
+        class="mb-10 bg-white p-4 sm:p-6 rounded-xl shadow-sm border border-gray-200"
+      >
+        <h2 class="text-xl font-bold text-center mb-4 text-[#3D352A]">
+          Linimasa Kegiatan
+        </h2>
+        <p class="text-center text-gray-600 mb-6 max-w-3xl mx-auto">
+          Gunakan linimasa ini untuk mendapatkan gambaran visual dari seluruh
+          kegiatan semester. Arahkan kursor ke setiap bar untuk melihat detail
+          tanggal.
+        </p>
+        <div class="chart-container">
+          <canvas id="timelineChart"></canvas>
+        </div>
+      </section>
+
+      <section id="task-list">
+        <h2 class="text-xl font-bold text-center mb-4 text-[#3D352A]">
+          Daftar Semua Kegiatan
+        </h2>
+        <p class="text-center text-gray-600 mb-6 max-w-3xl mx-auto">
+          Di bawah ini adalah daftar rinci dari semua diskusi dan tugas. Gunakan
+          filter untuk fokus pada jenis kegiatan yang ingin Anda lihat. Setiap
+          item menampilkan informasi penting seperti tenggat waktu dan status.
+        </p>
+        <div class="flex justify-center space-x-2 mb-6">
+          <button
+            class="btn-filter active px-4 py-2 text-sm font-semibold rounded-full transition bg-white border border-gray-300"
+            onclick="filterTasks('all')"
+          >
+            Semua
+          </button>
+          <button
+            class="btn-filter px-4 py-2 text-sm font-semibold rounded-full transition bg-white border border-gray-300"
+            onclick="filterTasks('Tugas')"
+          >
+            Tugas
+          </button>
+          <button
+            class="btn-filter px-4 py-2 text-sm font-semibold rounded-full transition bg-white border border-gray-300"
+            onclick="filterTasks('Diskusi')"
+          >
+            Diskusi
+          </button>
+        </div>
+        <div id="tasks-container" class="space-y-3"></div>
+      </section>
+
+      <footer
+        class="mt-16 border-t border-gray-300 pt-6 text-center text-sm text-gray-600"
+      >
+        <p class="font-medium tracking-wide">
+          Jadwal Kegiatan Tutorial Online 2025.2
+        </p>
+        <p class="mt-2 text-sm text-gray-500">
+          Created by
+          <a
+            href="#"
+            class="text-pink-500 font-semibold hover:text-pink-800 transition"
+          >
+            Nanachan </a
+          >
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      const activities = [
+        {
+          id: 1,
+          week: 1,
+          type: "Diskusi",
+          title: "Diskusi 1",
+          start: "2025-10-06",
+          end: "2025-10-19T23:59:59",
+        },
+        {
+          id: 2,
+          week: 2,
+          type: "Diskusi",
+          title: "Diskusi 2",
+          start: "2025-10-13",
+          end: "2025-10-26T23:59:59",
+        },
+        {
+          id: 3,
+          week: 3,
+          type: "Diskusi",
+          title: "Diskusi 3",
+          start: "2025-10-20",
+          end: "2025-10-26T23:59:59",
+        },
+        {
+          id: 4,
+          week: 3,
+          type: "Tugas",
+          title: "Tugas 1",
+          start: "2025-10-20",
+          end: "2025-11-03T15:00:00",
+        },
+        {
+          id: 5,
+          week: 4,
+          type: "Diskusi",
+          title: "Diskusi 4",
+          start: "2025-10-27",
+          end: "2025-11-02T23:59:59",
+        },
+        {
+          id: 6,
+          week: 5,
+          type: "Diskusi",
+          title: "Diskusi 5",
+          start: "2025-11-03",
+          end: "2025-11-09T23:59:59",
+        },
+        {
+          id: 7,
+          week: 5,
+          type: "Tugas",
+          title: "Tugas 2",
+          start: "2025-11-03",
+          end: "2025-11-17T15:00:00",
+        },
+        {
+          id: 8,
+          week: 6,
+          type: "Diskusi",
+          title: "Diskusi 6",
+          start: "2025-11-10",
+          end: "2025-11-16T23:59:59",
+        },
+        {
+          id: 9,
+          week: 7,
+          type: "Diskusi",
+          title: "Diskusi 7",
+          start: "2025-11-17",
+          end: "2025-11-23T23:59:59",
+        },
+        {
+          id: 10,
+          week: 7,
+          type: "Tugas",
+          title: "Tugas 3",
+          start: "2025-11-17",
+          end: "2025-12-01T15:00:00",
+        },
+        {
+          id: 11,
+          week: 8,
+          type: "Diskusi",
+          title: "Diskusi 8",
+          start: "2025-11-24",
+          end: "2025-11-30T23:59:59",
+        },
+      ];
+
+      const now = new Date();
+
+      function getDaysRemaining(endDate, type) {
+        const end = new Date(endDate);
+        const diffTime = end - now;
+        if (diffTime < 0) {
+          const text =
+            type === "Tugas"
+              ? "Tugas sudah melewati tenggat"
+              : "Diskusi sudah melewati tenggat";
+          return { days: -1, text: text };
+        }
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return { days: diffDays, text: `Tenggat: ${diffDays} hari lagi` };
+      }
+
+      function startCountdown() {
+        const countdownDate = new Date("2025-10-06T00:00:00").getTime();
+
+        const countdownFunction = setInterval(() => {
+          const now = new Date().getTime();
+          const distance = countdownDate - now;
+
+          if (distance < 0) {
+            clearInterval(countdownFunction);
+            document.getElementById("countdown-timer").classList.add("hidden");
+            document
+              .getElementById("countdown-over")
+              .classList.remove("hidden");
+            return;
+          }
+
+          const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+          const hours = Math.floor(
+            (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)
+          );
+          const minutes = Math.floor(
+            (distance % (1000 * 60 * 60)) / (1000 * 60)
+          );
+          const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+          document.getElementById("days").innerText = String(days).padStart(
+            2,
+            "0"
+          );
+          document.getElementById("hours").innerText = String(hours).padStart(
+            2,
+            "0"
+          );
+          document.getElementById("minutes").innerText = String(
+            minutes
+          ).padStart(2, "0");
+          document.getElementById("seconds").innerText = String(
+            seconds
+          ).padStart(2, "0");
+        }, 1000);
+      }
+
+      function renderSummary() {
+        // Progress Bar
+        const totalWeeks = 8;
+        const currentWeek =
+          activities.find(
+            (a) => new Date(a.start) <= now && new Date(a.end) >= now
+          )?.week || 0;
+        const progress =
+          currentWeek > 0 ? ((currentWeek - 1) / totalWeeks) * 100 : 0;
+        document.getElementById("progress-bar").style.width = `${progress}%`;
+        document.getElementById(
+          "progress-text"
+        ).textContent = `Minggu ${currentWeek} dari ${totalWeeks} (${Math.round(
+          progress
+        )}% Selesai)`;
+
+        // Active Discussions
+        const activeDiscussions = activities.filter(
+          (a) =>
+            a.type === "Diskusi" &&
+            new Date(a.start) <= now &&
+            new Date(a.end) >= now
+        );
+        const discussionsContainer = document.getElementById(
+          "active-discussions-list"
+        );
+        if (activeDiscussions.length > 0) {
+          discussionsContainer.innerHTML = activeDiscussions
+            .map((d) => {
+              const startDate = new Date(d.start).toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "short",
+              });
+              const endDate = new Date(d.end).toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "short",
+              });
+              const remaining = getDaysRemaining(d.end, d.type);
+              return `
+                        <div class="text-left border-t border-gray-200 pt-3">
+                            <h4 class="font-semibold text-[#A67B5B]">${
+                              d.title
+                            }</h4>
+                            <p class="text-sm text-gray-500">${startDate} - ${endDate}</p>
+                            <p class="text-sm font-medium ${
+                              remaining.days <= 3 && remaining.days > -1
+                                ? "text-red-600"
+                                : "text-gray-600"
+                            }">${remaining.text}</p>
+                        </div>
+                    `;
+            })
+            .join("");
+        } else {
+          discussionsContainer.innerHTML = `<p class="text-center text-sm text-gray-500 py-4">Tidak ada diskusi aktif saat ini.</p>`;
+        }
+
+        // Active Tasks
+        const activeTasks = activities.filter(
+          (a) =>
+            a.type === "Tugas" &&
+            new Date(a.start) <= now &&
+            new Date(a.end) >= now
+        );
+        const tasksContainer = document.getElementById("active-tasks-list");
+        if (activeTasks.length > 0) {
+          tasksContainer.innerHTML = activeTasks
+            .map((t) => {
+              const startDate = new Date(t.start).toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "short",
+              });
+              const endDate = new Date(t.end).toLocaleDateString("id-ID", {
+                day: "numeric",
+                month: "short",
+              });
+              const remaining = getDaysRemaining(t.end, t.type);
+              return `
+                        <div class="text-left border-t border-gray-200 pt-3">
+                            <h4 class="font-semibold text-[#A67B5B]">${
+                              t.title
+                            }</h4>
+                            <p class="text-sm text-gray-500">${startDate} - ${endDate}</p>
+                            <p class="text-sm font-medium ${
+                              remaining.days <= 3 && remaining.days > -1
+                                ? "text-red-600"
+                                : "text-gray-600"
+                            }">${remaining.text}</p>
+                        </div>
+                    `;
+            })
+            .join("");
+        } else {
+          tasksContainer.innerHTML = `<p class="text-center text-sm text-gray-500 py-4">Tidak ada tugas aktif saat ini.</p>`;
+        }
+      }
+
+      function renderTimeline() {
+        const ctx = document.getElementById("timelineChart").getContext("2d");
+        new Chart(ctx, {
+          type: "bar",
+          data: {
+            labels: activities.map((a) => a.title),
+            datasets: [
+              {
+                label: "Durasi Kegiatan",
+                data: activities.map((a) => [
+                  new Date(a.start),
+                  new Date(a.end),
+                ]),
+                backgroundColor: activities.map((a) =>
+                  new Date(a.end) < now
+                    ? "rgba(150, 150, 150, 0.5)"
+                    : a.type === "Tugas"
+                    ? "rgba(219, 126, 88, 0.7)"
+                    : "rgba(120, 157, 161, 0.7)"
+                ),
+                borderColor: activities.map((a) =>
+                  new Date(a.end) < now
+                    ? "rgb(150, 150, 150)"
+                    : a.type === "Tugas"
+                    ? "rgb(219, 126, 88)"
+                    : "rgb(120, 157, 161)"
+                ),
+                borderWidth: 1,
+                barPercentage: 0.6,
+                categoryPercentage: 0.8,
+                borderSkipped: false,
+              },
+            ],
+          },
+          options: {
+            indexAxis: "y",
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: {
+                type: "time",
+                time: { unit: "week", displayFormats: { week: "dd MMM" } },
+                min: "2025-10-01",
+                max: "2025-12-10",
+                grid: { color: "rgba(0,0,0,0.05)" },
+              },
+              y: { grid: { display: false } },
+            },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                callbacks: {
+                  label: function (context) {
+                    const item = activities[context.dataIndex];
+                    const start = new Date(item.start).toLocaleDateString(
+                      "id-ID",
+                      { day: "2-digit", month: "short" }
+                    );
+                    const end = new Date(item.end).toLocaleDateString("id-ID", {
+                      day: "2-digit",
+                      month: "short",
+                    });
+                    return `${item.type}: ${start} - ${end}`;
+                  },
+                },
+              },
+            },
+          },
+        });
+      }
+
+      function renderTasks(filter = "all") {
+        const container = document.getElementById("tasks-container");
+        const filteredActivities = activities.filter(
+          (a) => filter === "all" || a.type === filter
+        );
+
+        if (filteredActivities.length === 0) {
+          container.innerHTML = `<p class="text-center text-gray-500">Tidak ada kegiatan untuk ditampilkan.</p>`;
+          return;
+        }
+
+        container.innerHTML = filteredActivities
+          .map((activity) => {
+            const { days, text } = getDaysRemaining(
+              activity.end,
+              activity.type
+            );
+            let statusColor = "bg-green-100 text-green-800";
+            let statusText = text.replace("Tenggat: ", "");
+            let cardExtraClass = "";
+            let typeColor =
+              activity.type === "Tugas"
+                ? "border-l-[#CD725C]"
+                : "border-l-[#789DA1]";
+
+            if (days < 0) {
+              statusColor = "bg-gray-200 text-gray-600";
+              statusText = text;
+              cardExtraClass = "past-due";
+              typeColor = "border-l-gray-400";
+            } else if (days <= 3) {
+              statusColor = "bg-red-100 text-red-800";
+            } else if (days <= 7) {
+              statusColor = "bg-yellow-100 text-yellow-800";
+            }
+
+            const typeBadgeColor =
+              activity.type === "Tugas"
+                ? "bg-red-100 text-red-800"
+                : "bg-blue-100 text-blue-800";
+            const startDate = new Date(activity.start).toLocaleDateString(
+              "id-ID",
+              { dateStyle: "medium" }
+            );
+            const endDate = new Date(activity.end)
+              .toLocaleString("id-ID", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })
+              .replace("pukul", "")
+              .trim();
+
+            return `
+                    <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 ${typeColor} ${cardExtraClass} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-all">
+                        <div>
+                            <span class="text-xs font-medium px-2.5 py-0.5 rounded-full ${typeBadgeColor}">${activity.type}</span>
+                            <h4 class="font-bold mt-1">${activity.title}</h4>
+                            <p class="text-sm text-gray-500">Minggu ${activity.week} &bull; Mulai: ${startDate} &bull; Tenggat: ${endDate}</p>
+                        </div>
+                        <div class="flex-shrink-0">
+                            <span class="text-xs font-bold px-3 py-1 rounded-full ${statusColor}">${statusText}</span>
+                        </div>
+                    </div>
+                `;
+          })
+          .join("");
+      }
+
+      function filterTasks(filter) {
+        document
+          .querySelectorAll(".btn-filter")
+          .forEach((btn) => btn.classList.remove("active"));
+        event.target.classList.add("active");
+        renderTasks(filter);
+      }
+
+      document.addEventListener("DOMContentLoaded", () => {
+        startCountdown();
+        renderSummary();
+        renderTimeline();
+        renderTasks();
+      });
+    </script>
+  </body>
+</html>
