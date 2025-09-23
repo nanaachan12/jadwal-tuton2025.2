@@ -202,8 +202,8 @@
             href="#"
             class="text-pink-500 font-semibold hover:text-pink-800 transition"
           >
-            Nanachan </a
-          >
+            Nanachan
+          </a>
         </p>
       </footer>
     </div>
@@ -397,18 +397,18 @@
               });
               const remaining = getDaysRemaining(d.end, d.type);
               return `
-                        <div class="text-left border-t border-gray-200 pt-3">
-                            <h4 class="font-semibold text-[#A67B5B]">${
-                              d.title
-                            }</h4>
-                            <p class="text-sm text-gray-500">${startDate} - ${endDate}</p>
-                            <p class="text-sm font-medium ${
-                              remaining.days <= 3 && remaining.days > -1
-                                ? "text-red-600"
-                                : "text-gray-600"
-                            }">${remaining.text}</p>
-                        </div>
-                    `;
+                                <div class="text-left border-t border-gray-200 pt-3">
+                                    <h4 class="font-semibold text-[#A67B5B]">${
+                                      d.title
+                                    }</h4>
+                                    <p class="text-sm text-gray-500">${startDate} - ${endDate}</p>
+                                    <p class="text-sm font-medium ${
+                                      remaining.days <= 3 && remaining.days > -1
+                                        ? "text-red-600"
+                                        : "text-gray-600"
+                                    }">${remaining.text}</p>
+                                </div>
+                            `;
             })
             .join("");
         } else {
@@ -436,18 +436,18 @@
               });
               const remaining = getDaysRemaining(t.end, t.type);
               return `
-                        <div class="text-left border-t border-gray-200 pt-3">
-                            <h4 class="font-semibold text-[#A67B5B]">${
-                              t.title
-                            }</h4>
-                            <p class="text-sm text-gray-500">${startDate} - ${endDate}</p>
-                            <p class="text-sm font-medium ${
-                              remaining.days <= 3 && remaining.days > -1
-                                ? "text-red-600"
-                                : "text-gray-600"
-                            }">${remaining.text}</p>
-                        </div>
-                    `;
+                                <div class="text-left border-t border-gray-200 pt-3">
+                                    <h4 class="font-semibold text-[#A67B5B]">${
+                                      t.title
+                                    }</h4>
+                                    <p class="text-sm text-gray-500">${startDate} - ${endDate}</p>
+                                    <p class="text-sm font-medium ${
+                                      remaining.days <= 3 && remaining.days > -1
+                                        ? "text-red-600"
+                                        : "text-gray-600"
+                                    }">${remaining.text}</p>
+                                </div>
+                            `;
             })
             .join("");
         } else {
@@ -579,17 +579,17 @@
               .trim();
 
             return `
-                    <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 ${typeColor} ${cardExtraClass} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-all">
-                        <div>
-                            <span class="text-xs font-medium px-2.5 py-0.5 rounded-full ${typeBadgeColor}">${activity.type}</span>
-                            <h4 class="font-bold mt-1">${activity.title}</h4>
-                            <p class="text-sm text-gray-500">Minggu ${activity.week} &bull; Mulai: ${startDate} &bull; Tenggat: ${endDate}</p>
+                        <div class="bg-white p-4 rounded-lg shadow-sm border-l-4 ${typeColor} ${cardExtraClass} flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 transition-all">
+                            <div>
+                                <span class="text-xs font-medium px-2.5 py-0.5 rounded-full ${typeBadgeColor}">${activity.type}</span>
+                                <h4 class="font-bold mt-1">${activity.title}</h4>
+                                <p class="text-sm text-gray-500">Minggu ${activity.week} &bull; Mulai: ${startDate} &bull; Tenggat: ${endDate}</p>
+                            </div>
+                            <div class="flex-shrink-0">
+                                <span class="text-xs font-bold px-3 py-1 rounded-full ${statusColor}">${statusText}</span>
+                            </div>
                         </div>
-                        <div class="flex-shrink-0">
-                            <span class="text-xs font-bold px-3 py-1 rounded-full ${statusColor}">${statusText}</span>
-                        </div>
-                    </div>
-                `;
+                    `;
           })
           .join("");
       }
@@ -611,3 +611,4 @@
     </script>
   </body>
 </html>
+
